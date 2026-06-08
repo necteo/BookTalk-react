@@ -8,6 +8,7 @@ import {
 import apiClient from '../../http-commons';
 
 interface MemberInfo {
+  id: number;
   name: string;
   email: string | null;
   picture: string | null;
@@ -30,10 +31,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // HttpOnly 쿠키는 JS에서 읽을 수 없으므로 API 호출로 로그인 여부 확인
   const fetchMember = async () => {
     try {
-      const { data } = await apiClient.get('/api/member/me');
-      setMember(data);
+      const { status, data } = await apiClient.get('/api/member/me');
+      setMember(status === 204 ? null : data);
     } catch {
-      setMember(null); // 401이면 비로그인 상태
+      setMember(null);
     } finally {
       setIsLoading(false);
     }

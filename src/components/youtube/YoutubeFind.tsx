@@ -1,9 +1,9 @@
-import {Fragment, useRef, useState} from "react";
-import {useQuery} from "@tanstack/react-query";
-import { youtubeApi } from "./youtubeApi";
+import { Fragment, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { youtubeApi } from './youtubeApi';
 
 const YoutubeFind = () => {
-  const [fd, setFd] = useState('제주여행');
+  const [fd, setFd] = useState('개발자');
   const [searchTerm, setSearchTerm] = useState(fd);
   const fdRef = useRef<HTMLInputElement>(null);
   const { isLoading, isError, error, data } = useQuery({
@@ -18,9 +18,8 @@ const YoutubeFind = () => {
       return null;
     }
     setSearchTerm(fd.trim());
-  }
+  };
 
-  console.log(data);
 
   if (isLoading) {
     return <h1 className="text-center">Loading...</h1>;
@@ -31,7 +30,10 @@ const YoutubeFind = () => {
 
   return (
     <Fragment>
-      <div className="breadcumb-area" style={{ backgroundImage: "url(/img/bg-img/breadcumb.jpg)" }}>
+      <div
+        className="breadcumb-area"
+        style={{ backgroundImage: 'url(/img/bg-img/breadcumb.jpg)' }}
+      >
         <div className="container h-100">
           <div className="row h-100 align-items-center">
             <div className="col-12">
@@ -49,13 +51,24 @@ const YoutubeFind = () => {
               <nav aria-label="breadcrumb">
                 <ol className="breadcrumb">
                   <li className="breadcrumb-item">검색</li>
-                  <li className="breadcrumb-item active" aria-current="page">동영상검색</li>
+                  <li className="breadcrumb-item active" aria-current="page">
+                    동영상검색
+                  </li>
                 </ol>
               </nav>
             </div>
             <div className="col-12">
-              <input type="text" size={20} className="input-sm" ref={fdRef} value={fd} onChange={(e) => setFd(e.target.value)} />
-              <button className="btn-sm btn-primary" onClick={findClick}>검색</button>
+              <input
+                type="text"
+                size={20}
+                className="input-sm"
+                ref={fdRef}
+                value={fd}
+                onChange={(e) => setFd(e.target.value)}
+              />
+              <button className="btn-sm btn-primary" onClick={findClick}>
+                검색
+              </button>
             </div>
           </div>
         </div>
@@ -63,15 +76,47 @@ const YoutubeFind = () => {
 
       <section className="archive-area section_padding_80">
         <div className="container">
-          <div className="row" style={{ width: "500px", margin: "0 auto" }}>
+          <div className="row">
             {data?.items?.map((item, index) => (
-              <div className="col-12" key={index}>
-                <div className="single-post">
+              <div className="col-12 col-md-6 mb-4" key={index}>
+                <div
+                  className="single-post h-100"
+                  style={{
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                  }}
+                >
                   <div className="post-thumb">
-                    <iframe src={"https://www.youtube.com/embed/" + item.id.videoId} title={item.snippet.title} allowFullScreen={true} width="450" height="300" />
+                    <iframe
+                      src={'https://www.youtube.com/embed/' + item.id.videoId}
+                      title={item.snippet.title}
+                      allowFullScreen={true}
+                      style={{
+                        width: '100%',
+                        height: '240px',
+                        display: 'block',
+                        border: 'none',
+                      }}
+                    />
                   </div>
-                  <div className="post-content">
-                    <h4 className="post-content">{item.snippet.title}</h4>
+                  <div
+                    className="post-content"
+                    style={{ padding: '12px 16px' }}
+                  >
+                    <p
+                      style={{
+                        margin: 0,
+                        fontWeight: 600,
+                        fontSize: '15px',
+                        lineHeight: '1.4',
+                        overflow: 'hidden',
+                        whiteSpace: 'nowrap',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {item.snippet.title}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -80,7 +125,7 @@ const YoutubeFind = () => {
         </div>
       </section>
     </Fragment>
-  )
-}
+  );
+};
 
 export default YoutubeFind;

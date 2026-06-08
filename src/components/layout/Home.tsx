@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 const Home = () => {
   const { isLoading, isError, error, data } = useQuery<{ data: MainPageData }>({
     queryKey: ['main-data'],
-    queryFn: async () => await apiClient.get('/'),
+    queryFn: async () => await apiClient.get('/api/book/main'),
   });
 
   if (isLoading) {
@@ -21,8 +21,10 @@ const Home = () => {
     <div className="container">
       <div className="row">
         <h3 className="text-center">오늘의 책</h3>
-        <div className="col-12">
-          <img src={mainPage?.main.poster} alt="noimg" />
+        <div className="col-12 text-center">
+          <Link to={`/book/detail/${mainPage?.main.isbn}`}>
+            <img src={mainPage?.main.poster} alt="noimg" />
+          </Link>
         </div>
         <h3 className="text-center">많이 찾는 책 Top6</h3>
         {mainPage?.hitList.map((hitBook) => (
@@ -42,13 +44,13 @@ const Home = () => {
         {mainPage?.newList.map((newBook) => (
           <div className="col-md-6" key={newBook.isbn}>
             <div className="thumbnail">
-              <a href="/w3images/lights.jpg">
+              <Link to={`/book/detail/${newBook.isbn}`}>
                 <img src={newBook.poster} alt="noimg" />
                 <div className="caption">
                   <p>{newBook.title}</p>
                   <p>{newBook.author}</p>
                 </div>
-              </a>
+              </Link>
             </div>
           </div>
         ))}

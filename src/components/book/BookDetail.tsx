@@ -4,10 +4,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 import apiClient from '../../http-commons';
 import { BookDetailProps } from '../../commons/commonsData';
 import { AxiosResponse } from 'axios';
+import { useAuth } from '../auth/AuthContext';
 
 const BookDetail = () => {
   const { isbn } = useParams();
   const nav = useNavigate();
+  const { member } = useAuth();
 
   const [isInserting, setIsInserting] = useState(true);
   const [no, setNo] = useState(0);
@@ -28,7 +30,7 @@ const BookDetail = () => {
   } = useQuery<{ data: BookDetailProps }>({
     queryKey: ['book-detail', isbn],
     queryFn: async () => {
-      return await apiClient.get(`/book/detail-react/${isbn}`);
+      return await apiClient.get(`/api/book/detail/${isbn}`);
     },
   });
 
@@ -36,11 +38,11 @@ const BookDetail = () => {
   const { mutate: commentInsert } = useMutation<BookDetailProps>({
     mutationFn: async () => {
       const res: AxiosResponse<BookDetailProps, Error> = await apiClient.post(
-        `/comment/insert`,
+        `/api/comment/insert`,
         {
           isbn: isbn,
-          id: sessionStorage.getItem('id'),
-          name: sessionStorage.getItem('name'),
+          id: member?.id,
+          name: member?.name,
           msg: msg,
         },
       );
@@ -61,7 +63,7 @@ const BookDetail = () => {
   const { mutate: commentDelete } = useMutation<BookDetailProps>({
     mutationFn: async () => {
       const res: AxiosResponse<BookDetailProps, Error> = await apiClient.delete(
-        `/comment/delete/${no}/${isbn}`,
+        `/api/comment/delete/${no}/${isbn}`,
       );
       return res.data;
     },
@@ -76,7 +78,7 @@ const BookDetail = () => {
   const { mutate: commentUpdate } = useMutation<BookDetailProps>({
     mutationFn: async () => {
       const res: AxiosResponse<BookDetailProps, Error> = await apiClient.put(
-        '/comment/update',
+        '/api/comment/update',
         {
           no: no,
           msg: umsg,
@@ -105,7 +107,6 @@ const BookDetail = () => {
 
   const bookDetail = data?.data.detail;
   const comment = data?.data.comments;
-  console.log(comment);
   // 이벤트 처리
   const insert = () => {
     if (msg === '') {
@@ -121,7 +122,6 @@ const BookDetail = () => {
   };
 
   const updateData = (no: number, index: number) => {
-    console.log(umsgRef.current);
     if (umsgRef.current && comment) {
       setUmsg(comment[index].msg);
       umsgRef.current.focus();
@@ -257,7 +257,7 @@ const BookDetail = () => {
                                 ◐{com.name}({com.dbday})
                               </td>
                               <td className="text-right" width="20%">
-                                {com.id === sessionStorage.getItem('id') && (
+                                {com.id === member?.id && (
                                   <span>
                                     <button
                                       className="btn-sm btn-warning"
@@ -296,7 +296,7 @@ const BookDetail = () => {
                 </tr>
               </tbody>
             </table>
-            {sessionStorage.getItem('id') &&
+            {member?.id &&
               (isInserting ? (
                 <table className="table">
                   <tbody>

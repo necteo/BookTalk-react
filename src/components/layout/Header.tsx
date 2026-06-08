@@ -1,60 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import apiClient from '../../http-commons';
-import { AxiosResponse } from 'axios';
 import { useAuth } from '../auth/AuthContext';
 
 const Header = () => {
-  const [login, setLogin] = useState(false);
-  const [id, setId] = useState('');
-  const [pwd, setPwd] = useState('');
   const { isLoggedIn, isLoading, member, logout } = useAuth();
-
-  const idRef = useRef<HTMLInputElement>(null);
-  const pwdRef = useRef<HTMLInputElement>(null);
-
-  interface LoginResponse {
-    msg: 'NOID' | 'NOPWD' | 'OK';
-    id?: string;
-    name?: string;
-  }
-
-  const { mutate: loginOk } = useMutation({
-    mutationFn: async () => {
-      return await apiClient.post('/member/login', {
-        id: id,
-        pwd: pwd,
-      });
-    },
-    onSuccess: ({ data }: AxiosResponse<LoginResponse>) => {
-      if (data.msg === 'NOID') {
-        alert('아이디가 존재하지 않습니다');
-        setId('');
-        setPwd('');
-        idRef.current?.focus();
-      } else if (data.msg === 'NOPWD') {
-        alert('비밀번호가 틀립니다');
-        setPwd('');
-        pwdRef.current?.focus();
-      } else if (data.msg === 'OK' && data.id && data.name) {
-        console.log('로그인 성공');
-        sessionStorage.setItem('id', data.id);
-        sessionStorage.setItem('name', data.name);
-        setLogin(true);
-        window.location.reload();
-      }
-    },
-    onError: (error) => {
-      console.error('Login Error', error.message);
-    },
-  });
-
-  useEffect(() => {
-    if (sessionStorage.getItem('id')) {
-      setLogin(true);
-    }
-  }, []);
 
   return (
     <div className="container">
@@ -122,10 +70,10 @@ const Header = () => {
                 검색
               </a>
               <div className="dropdown-menu">
-                <Link className="dropdown-item" to="/find/youtube">
+                <Link className="dropdown-item" to="/youtube/find">
                   유튜브 검색
                 </Link>
-                <Link className="dropdown-item" to="/find/news">
+                <Link className="dropdown-item" to="/news/find">
                   뉴스 검색
                 </Link>
               </div>
@@ -137,12 +85,6 @@ const Header = () => {
                 </Link>
               </li>
             )}
-            <li className="nav-item"></li>
-            <li className="nav-item">
-              <Link className="nav-link" to="/board/list">
-                커뮤니티
-              </Link>
-            </li>
           </ul>
         </nav>
       </div>

@@ -16,7 +16,6 @@ const BoardDetail = () => {
   const { no } = useParams();
   const nav = useNavigate();
   const type = useNavigationType();
-  console.log(type);
 
   const { isLoading, isError, error, data } = useQuery<{ data: BoardDetailProps }>({
     queryKey: ['board-detail', no],
@@ -33,7 +32,6 @@ const BoardDetail = () => {
     return <h1 className="text-center">Error발생: {error.message}</h1>;
   }
 
-  console.log(data);
   const board = data?.data;
   if (!board) {
     return null;

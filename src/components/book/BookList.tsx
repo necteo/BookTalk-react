@@ -10,7 +10,7 @@ const BookList = () => {
   const { isLoading, isError, error, data } = useQuery<{ data: BookListData }>({
     queryKey: ['book-list' + curpage],
     queryFn: async () => {
-      return await apiClient.get(`/book/list-react/${curpage}`);
+      return await apiClient.get(`/api/book/list/${curpage}`);
     },
   });
 
@@ -59,18 +59,16 @@ const BookList = () => {
                       <div className="post-meta d-flex">
                         <div className="post-title-author-area d-flex">
                           <div className="post-title">
-                            <a href="#">{book.title}</a>
+                            <Link to={`/book/detail/${book.isbn}`}>{book.title}</Link>
                           </div>
                           <div className="post-author">
-                            <a href="#">{book.author}</a>
+                            {book.author}
                           </div>
                         </div>
                       </div>
-                      <a href="#">
-                        <h4 className="post-price">
-                          {book.price.toLocaleString()}
-                        </h4>
-                      </a>
+                      <h4 className="post-price">
+                        {book.price.toLocaleString()}
+                      </h4>
                     </div>
                   </div>
                 </div>

@@ -70,12 +70,12 @@ app.get('/board/list-node', async (req, res) => {
   const rowSize = 10;
   const start = (page - 1) * rowSize;
   try {
-    const sql = `SELECT no, subject, name, DATE_FORMAT(regdate, '%Y-%m-%d') AS dbday, hit 
+    const sql = `SELECT no AS NO, subject AS SUBJECT, name AS NAME,
+                        DATE_FORMAT(regdate, '%Y-%m-%d') AS DBDAY, hit AS HIT
                  FROM board
                  ORDER BY no DESC
                  LIMIT ?, ?`;
-    const totalSql = `SELECT CEIL(COUNT(*) / ?) AS totalpage
-                      FROM board`;
+    const totalSql = `SELECT CEIL(COUNT(*) / ?) AS totalpage FROM board`;
     const [rows] = await db.query(sql, [start, rowSize]);
     const [total] = await db.execute(totalSql, [rowSize]);
     res.json({
@@ -92,8 +92,8 @@ app.post('/board/insert-node', async (req, res) => {
   const { name, subject, content, pwd } = req.body;
 
   try {
-    const sql = `INSERT INTO board(name, subject, content, pwd) 
-                 VALUES(?, ?, ?, ?)`;
+    const sql = `INSERT INTO board(name, subject, content, pwd, regdate, hit, replycount)
+                 VALUES(?, ?, ?, ?, NOW(), 0, 0)`;
     await db.execute(sql, [name, subject, content, pwd]);
     res.json({ msg: 'yes' });
   } catch (error) {
@@ -107,7 +107,8 @@ app.get('/board/detail-node', async (req, res) => {
   try {
     await db.execute(`UPDATE board SET hit = hit + 1 WHERE no = ?`, [no]);
     const [rows] = await db.execute(
-      `SELECT no, subject, content, name, hit, DATE_FORMAT(regdate, '%Y-%m-%d') AS dbday
+      `SELECT no AS NO, subject AS SUBJECT, content AS CONTENT, name AS NAME,
+              hit AS HIT, DATE_FORMAT(regdate, '%Y-%m-%d') AS DBDAY
        FROM board
        WHERE no = ?`,
       [no],
@@ -139,7 +140,7 @@ app.put('/board/update-ok-node', async (req, res) => {
     const checkSql =
       'SELECT COUNT(*) AS cnt FROM board WHERE no = ? AND pwd = ?';
     const [check] = await db.execute(checkSql, [no, pwd]);
-    const count = (check as any[])[0] ?? 0;
+    const count = (check as any[])[0]?.cnt ?? 0;
     if (count === 0) {
       res.json({ msg: 'no' });
       return;
@@ -162,7 +163,7 @@ app.delete('/board/delete-node/:no', async (req, res) => {
     const checkSql =
       'SELECT COUNT(*) AS cnt FROM board WHERE no = ? AND pwd = ?';
     const [check] = await db.execute(checkSql, [no, pwd]);
-    const count = (check as any[])[0] ?? 0;
+    const count = (check as any[])[0]?.cnt ?? 0;
     if (count === 0) {
       res.json({ msg: 'no' });
       return;

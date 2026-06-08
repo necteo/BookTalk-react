@@ -37,8 +37,8 @@ export interface BookDetail {
 
 export interface CommentData {
   no: number;
-  isbn: number;
-  id: string;
+  isbn: string;
+  id: number;
   name: string;
   msg: string;
   dbday: string;

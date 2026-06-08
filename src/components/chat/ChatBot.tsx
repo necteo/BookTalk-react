@@ -1,4 +1,4 @@
-import {Fragment, useRef, useState} from "react";
+import { Fragment, useRef, useState } from 'react';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -9,7 +9,7 @@ const ChatBot = () => {
   // 저체 메세지 목록
   const [message, setMessage] = useState<Message[]>([]);
   // 입력값 읽기
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
 
   // AI메세지를 직접 생성 = HTML에 적용
   const streamingRef = useRef<HTMLDivElement>(null);
@@ -23,6 +23,8 @@ const ChatBot = () => {
   const typingTimer = useRef<number | null>(null);
 
   // 타이핑 시작
+  const onTypingDoneRef = useRef<(() => void) | null>(null);
+
   const startTyping = () => {
     if (typingTimer.current !== null) return;
 
@@ -33,13 +35,17 @@ const ChatBot = () => {
         if (!isStreaming.current) {
           clearInterval(typingTimer.current!);
           typingTimer.current = null;
+          // 타이핑 완료 시 DOM 초기화 후 state 반영
+          if (streamingRef.current) streamingRef.current.textContent = '';
+          onTypingDoneRef.current?.();
+          onTypingDoneRef.current = null;
         }
         return;
       }
 
       if (streamingRef.current && typingQueue.current.length > 0) {
         streamingRef.current.textContent =
-          (streamingRef.current.textContent ?? "") +
+          (streamingRef.current.textContent ?? '') +
           typingQueue.current.shift()!;
       }
     }, 30); // ⏱ 타이핑 속도
@@ -53,9 +59,9 @@ const ChatBot = () => {
 
     // 2. 사용자 메세지를 state에 추가
     setMessage((prev) => [
-      ...prev,  // 이전 데이터를 복사
+      ...prev, // 이전 데이터를 복사
       { role: 'user', content: input }, // 사용자가 보낸 메세지
-      { role: 'assistant', content: ''} // AI가 보낸 메세지
+      { role: 'assistant', content: '' }, // AI가 보낸 메세지
     ]);
 
     const userMessage = input;
@@ -71,21 +77,23 @@ const ChatBot = () => {
 
       // 2. 스트리밍 API 호출
       const response = await fetch(
-        "http://localhost:8080/chat/stream?message="+encodeURIComponent(userMessage)
+        'http://localhost:8080/chat/stream?message=' +
+          encodeURIComponent(userMessage),
+        {
+          credentials: 'include',
+        },
       );
 
       const reader = response.body!.getReader();
-      const decoder = new TextDecoder("utf-8");
-      let fullContent = "";
+      const decoder = new TextDecoder('utf-8');
+      let fullContent = '';
 
       // 3. 스트리밍 수신 루프
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder
-          .decode(value)
-          .replaceAll("data:", "");
+        const chunk = decoder.decode(value).replaceAll('data:', '');
 
         fullContent += chunk;
 
@@ -98,18 +106,19 @@ const ChatBot = () => {
         startTyping();
       }
 
-      // 스트리밍 종료
+      // 스트리밍 종료 — 타이핑이 끝나면 콜백으로 state 반영
       isStreaming.current = false;
 
-      // 5. 스트리밍 종료 후 state 반영
-      setMessage((prev) => {
-        const updated = [...prev];
-        updated[updated.length - 1] = {
-          role: "assistant",
-          content: fullContent,
-        };
-        return updated;
-      });
+      onTypingDoneRef.current = () => {
+        setMessage((prev) => {
+          const updated = [...prev];
+          updated[updated.length - 1] = {
+            role: 'assistant',
+            content: fullContent,
+          };
+          return updated;
+        });
+      };
 
       if (chatBoxRef.current) {
         chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
@@ -117,11 +126,14 @@ const ChatBot = () => {
     } catch (e) {
       console.error(e);
     }
-  }
+  };
 
   return (
     <Fragment>
-      <div className="breadcumb-area" style={{ backgroundImage: "url(/img/bg-img/breadcumb.jpg)" }}>
+      <div
+        className="breadcumb-area"
+        style={{ backgroundImage: 'url(/img/bg-img/breadcumb.jpg)' }}
+      >
         <div className="container h-100">
           <div className="row h-100 align-items-center">
             <div className="col-12">
@@ -139,7 +151,9 @@ const ChatBot = () => {
               <nav aria-label="breadcrumb">
                 <ol className="breadcrumb">
                   <li className="breadcrumb-item">챗봇</li>
-                  <li className="breadcrumb-item active" aria-current="page">챗봇</li>
+                  <li className="breadcrumb-item active" aria-current="page">
+                    챗봇
+                  </li>
                 </ol>
               </nav>
             </div>
@@ -149,45 +163,151 @@ const ChatBot = () => {
 
       <section className="archive-area section_padding_80">
         <div className="container">
-          <div className="row chat-container" style={{ margin: "0 auto" }}>
-            <div className="chat-header">Spring AI Chat (WebFlux)</div>
-            <div className="chat-box" id="chatBox" ref={chatBoxRef}>
+          <div
+            style={{
+              maxWidth: '720px',
+              margin: '0 auto',
+              display: 'flex',
+              flexDirection: 'column',
+              height: '70vh',
+              borderRadius: '16px',
+              overflow: 'hidden',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
+              background: '#b2c7d9',
+            }}
+          >
+            {/* 헤더 */}
+            <div
+              style={{
+                background: '#3e6d99',
+                color: '#fff',
+                padding: '14px 20px',
+                fontWeight: 700,
+                fontSize: '16px',
+                letterSpacing: '0.5px',
+              }}
+            >
+              AI 챗봇
+            </div>
+
+            {/* 메시지 영역 */}
+            <div
+              ref={chatBoxRef}
+              style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+              }}
+            >
               {message.map((msg, index) => {
                 const isLast = index === message.length - 1;
-                const isAssistant = msg.role === "assistant";
-
+                const isAssistant = msg.role === 'assistant';
                 return (
                   <div
                     key={index}
-                    className={`message ${msg.role}`}
+                    style={{
+                      display: 'flex',
+                      justifyContent: isAssistant ? 'flex-start' : 'flex-end',
+                    }}
                   >
+                    {isAssistant && (
+                      <div
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '50%',
+                          background: '#3e6d99',
+                          color: '#fff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '14px',
+                          fontWeight: 700,
+                          marginRight: '8px',
+                          flexShrink: 0,
+                          alignSelf: 'flex-end',
+                        }}
+                      >
+                        AI
+                      </div>
+                    )}
                     <div
-                      className="message-content"
                       ref={isAssistant && isLast ? streamingRef : null}
+                      style={{
+                        maxWidth: '70%',
+                        padding: '10px 14px',
+                        borderRadius: isAssistant
+                          ? '4px 16px 16px 16px'
+                          : '16px 4px 16px 16px',
+                        background: isAssistant ? '#fff' : '#fee500',
+                        color: '#222',
+                        fontSize: '14px',
+                        lineHeight: '1.6',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                      }}
                     >
                       {msg.content}
                     </div>
                   </div>
-                )
+                );
               })}
-
             </div>
-            <div className="input-area">
-              <div className="input-group">
-                <input
-                  type="text" id="messageInput" placeholder={"메세지 입력"}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                />
-                <button id="sendButton" onClick={sendMessage}>전송</button>
-              </div>
+
+            {/* 입력 영역 */}
+            <div
+              style={{
+                display: 'flex',
+                padding: '10px 12px',
+                background: '#f0f0f0',
+                gap: '8px',
+                alignItems: 'center',
+              }}
+            >
+              <input
+                type="text"
+                placeholder="메시지 입력"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                style={{
+                  flex: 1,
+                  border: 'none',
+                  borderRadius: '20px',
+                  padding: '10px 16px',
+                  fontSize: '14px',
+                  outline: 'none',
+                  background: '#fff',
+                }}
+              />
+              <button
+                onClick={sendMessage}
+                style={{
+                  background: '#fee500',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '40px',
+                  height: '40px',
+                  cursor: 'pointer',
+                  fontSize: '18px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                ➤
+              </button>
             </div>
           </div>
         </div>
       </section>
     </Fragment>
-)
-}
+  );
+};
 
 export default ChatBot;

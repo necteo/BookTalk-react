@@ -88,7 +88,6 @@ const BoardUpdate = () => {
     queryFn: async () =>
       await boardClient.get(`/board/update-node?no=${no}`)
   });
-  console.log(data?.data);
   const board = data?.data;
 
   useEffect(() => {
@@ -110,7 +109,6 @@ const BoardUpdate = () => {
         pwd: pwd
       }),
     onSuccess: async (res: AxiosResponse<BoardResponse>) => {
-      console.log(res);
       if (res.data.msg === 'yes') { // 비밀번호가 일치
         window.location.href = `/board/detail/${no}`;
       } else { // 비밀번호 틀린 상태
