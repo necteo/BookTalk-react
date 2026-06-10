@@ -77,7 +77,7 @@ const ChatBot = () => {
 
       // 2. 스트리밍 API 호출
       const response = await fetch(
-        'http://localhost:8080/chat/stream?message=' +
+        'http://localhost:8080/api/chat/stream?message=' +
           encodeURIComponent(userMessage),
         {
           credentials: 'include',
