@@ -40,9 +40,8 @@ const BookDetail = () => {
       const res: AxiosResponse<BookDetailProps, Error> = await apiClient.post(
         `/api/comment/insert`,
         {
+          // 작성자는 서버가 JWT로 결정 — id/name 안 보냄
           isbn: isbn,
-          id: member?.id,
-          name: member?.name,
           msg: msg,
         },
       );
@@ -63,7 +62,7 @@ const BookDetail = () => {
   const { mutate: commentDelete } = useMutation<BookDetailProps>({
     mutationFn: async () => {
       const res: AxiosResponse<BookDetailProps, Error> = await apiClient.delete(
-        `/api/comment/delete/${no}/${isbn}`,
+        `/api/comment/delete/${no}`,
       );
       return res.data;
     },
