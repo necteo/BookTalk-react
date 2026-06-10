@@ -16,9 +16,11 @@ const db = mysql.createPool({
 });
 
 const app = express();
+// 허용 출처를 프론트 도메인으로 제한 (배포 시 CLIENT_ORIGIN으로 override)
+const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:3000';
 app.use(
   cors({
-    origin: '*',
+    origin: clientOrigin,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   }),
 );
