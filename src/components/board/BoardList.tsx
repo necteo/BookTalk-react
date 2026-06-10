@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import boardClient from '../../board-commons';
@@ -20,21 +20,11 @@ interface BoardListResponse {
 const BoardList = () => {
   const [curpage, setCurpage] = useState(1);
 
-  const {
-    isLoading,
-    isError,
-    error,
-    data,
-    refetch: hitIncrement,
-  } = useQuery<{ data: BoardListResponse }>({
+  const { isLoading, isError, error, data } = useQuery<{ data: BoardListResponse }>({
     queryKey: ['board-list', curpage],
     queryFn: async () =>
       await boardClient.get(`board/list-node?page=${curpage}`),
   });
-
-  useEffect(() => {
-    hitIncrement();
-  }, [hitIncrement]);
 
   if (isLoading) {
     return <h1 className="text-center">Loading...</h1>;

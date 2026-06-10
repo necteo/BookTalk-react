@@ -26,7 +26,7 @@ const BookDetail = () => {
     isError,
     error,
     data,
-    refetch: jejuDetail,
+    refetch: refetchBookDetail,
   } = useQuery<{ data: BookDetailProps }>({
     queryKey: ['book-detail', isbn],
     queryFn: async () => {
@@ -49,7 +49,7 @@ const BookDetail = () => {
       return res.data;
     },
     onSuccess: (data: BookDetailProps) => {
-      jejuDetail();
+      refetchBookDetail();
       if (msgRef.current) {
         setMsg('');
         msgRef.current.focus();
@@ -68,7 +68,7 @@ const BookDetail = () => {
       return res.data;
     },
     onSuccess: (data: BookDetailProps) => {
-      jejuDetail();
+      refetchBookDetail();
     },
     onError: (err: Error) => {
       console.error('Error발생 :', err.message);
@@ -87,7 +87,7 @@ const BookDetail = () => {
       return res.data;
     },
     onSuccess: (data: BookDetailProps) => {
-      jejuDetail();
+      refetchBookDetail();
       if (umsgRef.current) {
         setUmsg('');
       }
