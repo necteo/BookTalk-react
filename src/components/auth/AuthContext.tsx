@@ -31,8 +31,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // HttpOnly 쿠키는 JS에서 읽을 수 없으므로 API 호출로 로그인 여부 확인
   const fetchMember = async () => {
     try {
-      const { status, data } = await apiClient.get('/api/member/me');
-      setMember(status === 204 ? null : data);
+      // 401이면 인터셉터가 refresh 후 재시도 → 성공 시 회원 정보, refresh 실패 시 catch로
+      const { data } = await apiClient.get('/api/member/me');
+      setMember(data);
     } catch {
       setMember(null);
     } finally {

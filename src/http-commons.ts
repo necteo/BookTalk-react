@@ -15,12 +15,13 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // 401이고 재시도한 적 없으면
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      // /api/member/me는 재시도 제외 — 비로그인 상태 확인용이므로
-      if (originalRequest.url === '/api/member/me') {
-        return Promise.reject(error);
-      }
+    // 401이고, 재시도한 적 없고, refresh 요청 자체가 아니면
+    // (refresh가 401일 때 또 refresh를 호출하면 무한 루프가 되므로 제외)
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes('/api/auth/refresh')
+    ) {
       originalRequest._retry = true; // 무한루프 방지
 
       try {
@@ -30,8 +31,10 @@ apiClient.interceptors.response.use(
         // 원래 요청 재시도
         return apiClient(originalRequest);
       } catch (refreshError) {
-        // Refresh Token도 만료 — 로그인 페이지로 이동
-        window.location.href = '/login';
+        // Refresh Token도 만료 — /api/member/me는 비로그인 처리, 그 외는 로그인 페이지로 이동
+        if (originalRequest.url !== '/api/member/me') {
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshError);
       }
     }
