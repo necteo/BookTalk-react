@@ -34,15 +34,27 @@
 
 ### 전역 인증 상태 — AuthContext
 JWT를 HttpOnly 쿠키로 관리하므로 JS에서 토큰을 직접 읽을 수 없습니다.
-대신 앱 초기 진입 시 `/api/member/me`를 호출해 로그인 상태를 확인하고,
-응답이 `204 No Content`이면 비로그인, `200 OK`이면 회원 정보를 전역 상태로 저장합니다.
+대신 앱 초기 진입 시 `/api/member/me`를 호출해 로그인 상태를 확인합니다.
+`200 OK`이면 회원 정보를 전역 상태로 저장하고, `401`이면 Axios 인터셉터가
+자동으로 토큰을 재발급(refresh)한 뒤 재시도합니다. refresh까지 실패하면 비로그인으로 처리합니다.
 
 ```typescript
 const fetchMember = async () => {
-  const { status, data } = await apiClient.get('/api/member/me');
-  setMember(status === 204 ? null : data);
+  try {
+    // 401이면 인터셉터가 refresh 후 재시도 → 성공 시 회원 정보, 실패 시 catch
+    const { data } = await apiClient.get('/api/member/me');
+    setMember(data);
+  } catch {
+    setMember(null);
+  }
 };
 ```
+
+### 토큰 자동 재발급 — Axios 인터셉터
+응답이 `401`이면 `/api/auth/refresh`로 Access Token을 재발급하고 원래 요청을 재시도합니다.
+refresh 요청 자체는 재시도 대상에서 제외해 무한 루프를 방지하고,
+refresh가 실패하면(7일 만료 등) `/login`으로 이동합니다(단 `/api/member/me`는 비로그인 처리).
+Access Token(15분)이 만료돼도 Refresh Token(7일)이 유효하면 로그인이 유지됩니다.
 
 ### AI 챗봇 — SSE 스트리밍
 Spring Boot에서 `Flux<String>`으로 전송하는 SSE를 `fetch` + `ReadableStream`으로 수신합니다.
