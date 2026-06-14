@@ -206,3 +206,27 @@ app.get('/news/find-node', async (req, res) => {
       res.status(error).end();
     });
 });
+
+// 유튜브 검색 (키를 서버에서만 보유 → 프론트 노출 방지)
+const youtube_api_key = process.env.YOUTUBE_API_KEY;
+app.get('/youtube/find-node', async (req, res) => {
+  const query = req.query.query as string;
+  if (!query) {
+    return res.status(400).send({ message: '검색어가 없습니다' });
+  }
+  const api_url =
+    'https://youtube.googleapis.com/youtube/v3/search?part=snippet&maxResults=28&type=video&q=' +
+    encodeURIComponent(query) +
+    '&key=' +
+    youtube_api_key;
+
+  await axios
+    .get(api_url)
+    .then((response) => {
+      res.json(response.data);
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(500).json({ message: 'Youtube API 오류' });
+    });
+});

@@ -1,11 +1,10 @@
 import { YoutubeResponse } from "../../commons/commonsData";
+import boardClient from "../../board-commons";
 
-const API_KEY = "AIzaSyAixYk4aBWtUwcUS_hyPAPzeXiNmn2M5zk";
-
+// 키는 Express(.env)에만 있고, 프론트는 우리 서버(Express)만 호출 → 키 비노출
 export const youtubeApi = async (keyword: string): Promise<YoutubeResponse> => {
-  const response = await fetch(`https://youtube.googleapis.com/youtube/v3/search?part=snippet&maxResults=28&q=${keyword}&type=video&key=${API_KEY}`);
-  if (!response.ok) {
-    throw new Error('Youtube API error');
-  }
-  return response.json();
-}
+  const { data } = await boardClient.get<YoutubeResponse>(
+    `/youtube/find-node?query=${encodeURIComponent(keyword)}`
+  );
+  return data;
+};
